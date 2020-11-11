@@ -3,22 +3,27 @@ import { Router } from 'express';
 import TransactionsRepository from '../repositories/TransactionsRepository';
 import CreateTransactionService from '../services/CreateTransactionService';
 import ListAllTransactionService from '../services/ListAllTransactionService';
+import CalculeBalanceService from '../services/CalculeBalanceService';
 
 const transactionRouter = Router();
 
 const transactionsRepository = new TransactionsRepository();
 
-transactionRouter.get('/transactions', (request, response) => {
+transactionRouter.get('/', (request, response) => {
   try {
     const transactionsList = new ListAllTransactionService(transactionsRepository);
+    const balance = new CalculeBalanceService(transactionsRepository);
 
-    return response.status(200).json(transactionsList.execute());
+    return response.status(200).json({
+      transactions: transactionsList.execute(),
+      balance: balance.execute()
+    });
   } catch (err) {
     return response.status(400).json({ error: err.message });
   }
 });
 
-transactionRouter.post('/transactions', (request, response) => {
+transactionRouter.post('/', (request, response) => {
   try {
    const transaction = request.body;
 
@@ -30,8 +35,5 @@ transactionRouter.post('/transactions', (request, response) => {
   }
 });
 
-transactionRouter.get('/', (req, res) =>  {
-  return res.status(200).send("testeee");
-});
 
 export default transactionRouter;
