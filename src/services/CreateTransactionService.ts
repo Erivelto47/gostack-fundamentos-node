@@ -9,8 +9,23 @@ class CreateTransactionService {
   }
 
   public execute(transaction: Transaction): Transaction {
+
+    this.isValidTransaction(transaction);
     return this.transactionsRepository.create(transaction);
   }
+
+  private isValidTransaction(transaction: Transaction) {
+
+    if (transaction.type === 'outcome') {
+      const balance = this.transactionsRepository.getBalance();
+
+      if (balance.total < transaction.value) {
+        throw new Error("No credits available.");
+      }
+    }
+  }
+
+
 }
 
 export default CreateTransactionService;

@@ -25,24 +25,50 @@ class TransactionsRepository {
   }
 
   public getBalance(): Balance {
-    const incomeCalc = this.transactions
-      .filter(incomeTrs => incomeTrs.type === 'income')
-      .map(trs => trs.value)
-      .reduce( (accum, curr) => accum + curr );
+    const incomeCalc = this.getIncomeCalc();
 
-    const outcomeCalc = this.transactions
-      .filter(incomeTrs => incomeTrs.type === 'outcome')
-      .map(trs => trs.value)
-      .reduce( (accum, curr) => accum + curr );
+    const outcomeCalc = this.getOutcomeCalc();
 
     return  { income: incomeCalc, outcome: outcomeCalc, total: (incomeCalc - outcomeCalc)};
   }
 
   public create(transaction: Transaction): Transaction {
+    this.existsTransaction(transaction);
     transaction.id = uuid();
     this.transactions.push(transaction);
     const index = this.transactions.indexOf(transaction);
     return this.transactions[index];
+  }
+
+  private getIncomeCalc() {
+    const incomeTransactions = this.transactions
+      .filter(incomeTrs => incomeTrs.type === 'income')
+
+    return incomeTransactions.length > 0
+      ? incomeTransactions
+        .map(trs => trs.value)
+        .filter(value => value !== null)
+        .reduce((accum, curr) => accum + curr)
+      : 0;
+  }
+
+  private getOutcomeCalc() {
+    const outcomeTransactions = this.transactions
+      .filter(incomeTrs => incomeTrs.type === 'outcome');
+
+    return outcomeTransactions.length > 0
+      ? outcomeTransactions
+        .map(trs => trs.value)
+        .filter(value => value !== null)
+        .reduce((accum, curr) => accum + curr)
+      : 0;
+  }
+
+  private existsTransaction(newTransaction: Transaction): void {
+    if (this.transactions
+      .find(transactionE => transactionE.value === newTransaction.value && transactionE.type === newTransaction.type)) {
+      throw new Error("Exists transaction.");
+    }
   }
 }
 
